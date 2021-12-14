@@ -63,7 +63,7 @@ zip -q -d log4j-core-*.jar org/apache/logging/log4j/core/lookup/JndiLookup.class
 
 参考官网信息：
 
-![官网信息](./log4j2_info.png)
+![官网信息](https://img-blog.csdnimg.cn/7a94b6abe9ff4e69b1063e43e908b2b0.png?x-oss-process=image/watermark,type_d3F5LXplbmhlaQ,shadow_50,text_Q1NETiBA5p2o5bCP54aK55qE56yU6K6w,size_20,color_FFFFFF,t_70,g_se,x_16#pic_center)
 
 
 
