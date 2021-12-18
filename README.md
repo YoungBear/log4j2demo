@@ -14,6 +14,11 @@
 
 附：从jar包中删除class文件的方法：
 
+注意：
+
+- 如果容器化部署，容器实例重启后操作会复原，需要重新操作。
+- 实际执行需要关注文件属主和权限等安全属性。
+
 ### 1. 非SpringBoot的jar包，直接删除log4j-core-*.jar中class文件
 
 ```shell
@@ -22,15 +27,22 @@ zip -q -d log4j-core-*.jar org/apache/logging/log4j/core/lookup/JndiLookup.class
 
 ### 2. SpringBoot的jar包，需要解压出log4j-core*.jar，删除class文件后重新打包
 
-#### 2.1 使用zip命令
+#### 2.1 使用zip和unzip命令
 
 ```shell
 # 以Demo.jar为例
 ## 解压获得log4j-core*.jar
 unzip -o Demo.jar BOOT-INF/lib/log4j-core*.jar
-# 删除class
+## 删除class
 zip -q -d BOOT-INF/lib/log4j-core*.jar org/apache/logging/log4j/core/lookup/JndiLookup.class
-
+## 重新打包
+zip -r -0 Demo.jar BOOT-INF/
+## 检查jar包中的log4j-core*.jar包是否已经更新
+unzip -l Demo.jar | grep log4j-core
+## 删除临时文件
+rm -rf BOOT-INF/
+## 检查下jar包是否可以正常启动
+java -jar Demo.jar
 
 ```
 
@@ -40,7 +52,19 @@ zip -q -d BOOT-INF/lib/log4j-core*.jar org/apache/logging/log4j/core/lookup/Jndi
 
 ```shell
 # 以Demo.jar为例
-jar -xf 
+
+## 创建临时目录
+rm -rf tmp && mkdir tmp && cd tmp
+## 解压
+jar -xf ../Demo.jar
+## 删除class
+zip -q -d BOOT-INF/lib/log4j-core*.jar org/apache/logging/log4j/core/lookup/JndiLookup.class
+## 重新打包
+jar -cfm0 Demo.jar ./META-INF/MANIFEST.MF ./
+## 删除临时文件
+rm -rf BOOT-INF/ META-INF/ org/
+## 检查下jar包是否可以正常启动
+java -jar Demo.jar
 ```
 
 
