@@ -1,5 +1,52 @@
 # Apache log4j2 远程命令执行漏洞
 
+## 2021-12-18重要更新：
+
+根据Apache Log4j2官网信息，针对漏洞CVE-2021-44228的临时规避方案，除了删除class之外，其他设置formatMsgNoLookups等环境变量的方案，在特定情况下会失效。建议升级到2.16.0版本，或者删除class文件。
+
+另外，2.16.0版本仍存在漏洞CVE-2021-45105，当前官网给的方案是升级到2.17.0，并时刻关注官网信息。
+
+
+
+参考：2012-12-18官网信息
+
+![2012-12-18官网信息](./log4j2_info_update_20211218.png)
+
+附：从jar包中删除class文件的方法：
+
+### 1. 非SpringBoot的jar包，直接删除log4j-core-*.jar中class文件
+
+```shell
+zip -q -d log4j-core-*.jar org/apache/logging/log4j/core/lookup/JndiLookup.class
+```
+
+### 2. SpringBoot的jar包，需要解压出log4j-core*.jar，删除class文件后重新打包
+
+#### 2.1 使用zip命令
+
+```shell
+# 以Demo.jar为例
+## 解压获得log4j-core*.jar
+unzip -o Demo.jar BOOT-INF/lib/log4j-core*.jar
+# 删除class
+zip -q -d BOOT-INF/lib/log4j-core*.jar org/apache/logging/log4j/core/lookup/JndiLookup.class
+
+
+```
+
+
+
+#### 2.2 使用jar命令（需要jdk）
+
+```shell
+# 以Demo.jar为例
+jar -xf 
+```
+
+
+
+
+
 ## 1. 漏洞信息
 
 漏洞软件： Apache Log4j2
@@ -35,11 +82,11 @@
 
 ## 3. 修复方案
 
-升级到 2.15.0 版本
+升级到 2.16.0 版本
 
 
 
-## 4. 缓解措施
+## 4. 缓解措施（已失效）
 
 ### 2.10 <= 版本 <= 2.14.1
 
@@ -76,6 +123,17 @@ zip -q -d log4j-core-*.jar org/apache/logging/log4j/core/lookup/JndiLookup.class
 [3. Apache Log4j2 github地址](https://github.com/apache/logging-log4j2)
 
 [4. 复现代码](https://github.com/YoungBear/log4j2demo)
+
+
+
+**漏洞信息：**
+
+- [CVE-2021-45105：DOS，7.5](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-45105)
+- [CVE-2021-45046：9.0](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-45046)
+
+- [CVE-2021-44228：JNDI， 10.0](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44228)
+
+  
 
 
 
