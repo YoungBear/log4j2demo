@@ -1,5 +1,11 @@
 # Apache log4j2 远程命令执行漏洞
 
+## 2021-12-27 重要更新：
+
+根据官网消息，2.16.0和2.17.0版本包暴露了新的漏洞([CVE-2021-45105](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-45105))和([CVE-2021-44832](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44832))。建议升级到2.17.1版本。
+
+
+
 ## 2021-12-18重要更新：
 
 根据Apache Log4j2官网信息，针对漏洞CVE-2021-44228的临时规避方案，除了删除class之外，其他设置formatMsgNoLookups等环境变量的方案，在特定情况下会失效。建议升级到2.16.0版本，或者删除class文件。
